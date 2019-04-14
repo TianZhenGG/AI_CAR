@@ -21,3 +21,10 @@
 
 
 4. 小车附加功能： 语音控制小车，基于face_recongnition的人脸识别跟踪等技术。
+
+
+
+下面来看看我的树莓派小车吧
+
+![image]
+(https://github.com/TianZhenGG/AI_PIC/blob/master/20190414175852.jpg)
