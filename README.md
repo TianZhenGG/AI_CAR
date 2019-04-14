@@ -28,10 +28,15 @@
 
 ![image]
 (https://github.com/TianZhenGG/AI_PIC/blob/master/20190414175852.jpg)
-
+=====================================================================
 好了，我们现在去看看决策过程吧：
 
 ![image]
 (https://github.com/TianZhenGG/AI_PIC/blob/master/Screenshot%20from%202019-04-14%2023-06-39.png)
 
 通过物体识别技术及超声波定位，可以感知小车前方障碍物情况，并绘制Q表，然后让小车模拟驾驶100次得到最优路径，最后根据最优路径控制小车前进。
+======================================================================
+最后来看一下我的MASK-RCNN的识别效果吧
+![image]
+(https://github.com/TianZhenGG/AI_PIC/blob/master/20190414231500.jpg)
+有条件的可以训练自己的数据集哦。
