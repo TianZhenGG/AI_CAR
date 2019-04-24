@@ -1,162 +1,100 @@
 # coding=utf-8
-import RPi.GPIO as GPIO
+
+from __future__ import division
 import time
-import configparser
+import Adafruit_PCA9685
 
+pwm = Adafruit_PCA9685.PCA9685()
 
-class FourWheelDriveCar():
-    # Define the number of all the GPIO that will used for the 4wd car
+#每个舵机由两个阵脚的脉冲进行控制
+mA1=8
+mA2=9
+mB1=10
+mB2=11
 
-    def __init__(self):
-        '''
-        1. Read pin number from configure file
-        2. Init all GPIO configureation
-        '''
-        config = configparser.ConfigParser()
-        config.read("config.ini")
-        self.LEFT_FRONT_1 = config.getint("car", "LEFT_FRONT_1")
-        self.LEFT_FRONT_2 = config.getint("car", "LEFT_FRONT_2")
+pwm.set_pwm_freq(50)
 
-        self.RIGHT_FRONT_1 = config.getint("car", "RIGHT_FRONT_1")
-        self.RIGHT_FRONT_2 = config.getint("car", "RIGHT_FRONT_2")
-
-        self.LEFT_BEHIND_1 = config.getint("car", "LEFT_BEHIND_1")
-        self.LEFT_BEHIND_2 = config.getint("car", "LEFT_BEHIND_2")
-
-        self.RIGHT_BEHIND_1 = config.getint("car", "RIGHT_BEHIND_1")
-        self.RIGHT_BEHIND_2 = config.getint("car", "RIGHT_BEHIND_2")
-
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setwarnings(False)
-        GPIO.setup(self.LEFT_FRONT_1, GPIO.OUT)
-        GPIO.setup(self.LEFT_FRONT_2, GPIO.OUT)
-        GPIO.setup(self.RIGHT_FRONT_1, GPIO.OUT)
-        GPIO.setup(self.RIGHT_FRONT_2, GPIO.OUT)
-        GPIO.setup(self.LEFT_BEHIND_1, GPIO.OUT)
-        GPIO.setup(self.LEFT_BEHIND_2, GPIO.OUT)
-        GPIO.setup(self.RIGHT_BEHIND_1, GPIO.OUT)
-        GPIO.setup(self.RIGHT_BEHIND_2, GPIO.OUT)
-
+class FourWheelDriveCar:
+# Define the number of all the GPIO that will used for the 4wd car   
+    def forward(self):
+        pwm.set_pwm(mA1,0,1024)
+        pwm.set_pwm(mA2,0,0)
+        pwm.set_pwm(mB1,0,1024)
+        pwm.set_pwm(mB2,0,0)
+        time.sleep(1)
+    #向后，两个舵机向与forward（）向反的方向旋转
+    def back(self):
+        pwm.set_pwm(mA2,0,1024)
+        pwm.set_pwm(mA1,0,0)
+        pwm.set_pwm(mB2,0,1024)
+        pwm.set_pwm(mB1,0,0)
+        time.sleep(1)
+    #原地左转，给右舵机向前速度，给左舵机向后速度
+    def spin_left(self):
+        pwm.set_pwm(mA1,0,0)
+        pwm.set_pwm(mA2,0,1024)
+        pwm.set_pwm(mB1,0,1024)
+        pwm.set_pwm(mB2,0,0)
+        time.sleep(1)
+    #原地右转，给左舵机向前速度，给右舵机向后速度
+    def spin_right(self):
+        pwm.set_pwm(mA1,0,1024)
+        pwm.set_pwm(mA2,0,0)
+        pwm.set_pwm(mB1,0,0)
+        pwm.set_pwm(mB2,0,1024)
+        time.sleep(1)
+    #左转，通过频率差值改变转向角度
+    def left(self):
+        pwm.set_pwm(mA1,0,512)
+        pwm.set_pwm(mA2,0,0)
+        pwm.set_pwm(mB1,0,1024)
+        pwm.set_pwm(mB2,0,0)
+        time.sleep(1)
+    #右转，通过频率差值改变旋转角度
+    def right(self):
+        pwm.set_pwm(mA1,0,1024)
+        pwm.set_pwm(mA2,0,0)
+        pwm.set_pwm(mB1,0,512)
+        pwm.set_pwm(mB2,0,0)
+        time.sleep(1)
+    def stop(self):
+        pwm.set_pwm(mA1,0,0)
+        pwm.set_pwm(mA2,0,0)
+        pwm.set_pwm(mB1,0,0)
+        pwm.set_pwm(mB2,0,0)
+        time.sleep(1)
+        
     def reset(self):
-        # Rest all the GPIO as LOW
-        GPIO.output(self.LEFT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.LEFT_FRONT_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.LOW)
-
-    def __forword(self):
-        self.reset()
-        GPIO.output(self.LEFT_FRONT_1, GPIO.HIGH)
-        GPIO.output(self.LEFT_FRONT_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.HIGH)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.LOW)
-
-    def __backword(self):
-        self.reset()
-        GPIO.output(self.LEFT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.LEFT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.HIGH)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.HIGH)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.LOW)
-
-    def __turnLeft(self):
-        '''
-        To turn left, the LEFT_FRONT wheel will move backword
-        All other wheels move forword
-        '''
-        self.reset()
-        GPIO.output(self.LEFT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.LEFT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.HIGH)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.LOW)
-
-    def __turnRight(self):
-        '''
-        To turn right, the RIGHT_FRONT wheel move backword
-        All other wheels move forword
-        '''
-        self.reset()
-        GPIO.output(self.LEFT_FRONT_1, GPIO.HIGH)
-        GPIO.output(self.LEFT_FRONT_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.LOW)
-
-    def __backLeft(self):
-        '''
-        To go backword and turn left, the LEFT_BEHIND wheel move forword
-        All other wheels move backword
-        '''
-        self.reset()
-        GPIO.output(self.LEFT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.LEFT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.HIGH)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.LOW)
-
-    def __backRight(self):
-        '''
-        To go backword and turn right, the RIGHT_BEHIND wheel move forword
-        All other wheels move backword
-        '''
-        self.reset()
-        GPIO.output(self.LEFT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.LEFT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_FRONT_2, GPIO.HIGH)
-        GPIO.output(self.RIGHT_FRONT_1, GPIO.LOW)
-        GPIO.output(self.LEFT_BEHIND_2, GPIO.HIGH)
-        GPIO.output(self.LEFT_BEHIND_1, GPIO.LOW)
-        GPIO.output(self.RIGHT_BEHIND_1, GPIO.HIGH)
-        GPIO.output(self.RIGHT_BEHIND_2, GPIO.LOW)
-
-    def __stop(self):
-        self.reset()
-
+        pwm.set_pwm(mA1,0,0)
+        pwm.set_pwm(mA2,0,0)
+        pwm.set_pwm(mB1,0,0)
+        pwm.set_pwm(mB2,0,0)
+        time.sleep(1)
+        
     def carMove(self, direction):
         '''
         Car move according to the input paramter - direction
         '''
         if direction == 'F':
-            self.__forword()
+            self.forward()
         elif direction == 'B':
-            self.__backword()
+            self.back()
         elif direction == 'L':
-            self.__turnLeft()
+            self.left()
         elif direction == 'R':
-            self.__turnRight()
+            self.right()
         elif direction == 'BL':
-            self.__backLeft()
+            self.spin_left()
         elif direction == 'BR':
-            self.__backRight()
+            self.spin_right()
         elif direction == 'S':
-            self.__stop()
+            self.stop()
         else:
-            print("The input direction is wrong! You can just input: F, B, L, R, BL,BR or S")
-
+            print("The input direction is wrong! You can just input: F, B, L, R, BL,BR or S")    
 
 if __name__ == "__main__":
-    raspCar = FourWheelDriveCar()
+    raspcar = FourWheelDriveCar()
     while (True):
         direction = input("Please input direction: ")
-        raspCar.carMove(direction)
+        raspcar.carMove(direction)
+      
