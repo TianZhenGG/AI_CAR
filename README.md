@@ -34,3 +34,9 @@
 ![image]
 (https://github.com/TianZhenGG/AI_PIC/blob/master/20190414231500.jpg)
 有条件的可以训练自己的数据集哦。
+
+运行方法
+=====================================================================
+树莓派： 运行 server.py   及 camera_cont1.py  ()
+客户机： 运行 demo.py
+
